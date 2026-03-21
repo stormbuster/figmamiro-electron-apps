@@ -46,6 +46,8 @@ public class Figma.App : Granite.Application {
 }
 
 public class Figma.Window : Hdy.Window {
+    private Hdy.HeaderBar header;
+
     public Window (Gtk.Application app) {
         Object (
             application: app,
@@ -57,8 +59,7 @@ public class Figma.Window : Hdy.Window {
         );
 
         // HeaderBar matching EOS 8 standard
-        // In Hdy.Window, we don't use set_titlebar(). We add the header to the top of the main layout.
-        var header = new Hdy.HeaderBar ();
+        header = new Hdy.HeaderBar ();
         header.show_close_button = true;
         header.title = "Figma";
 
@@ -85,12 +86,11 @@ public class Figma.Window : Hdy.Window {
         // Figma-specific User Agent
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-        // Main Layout (Header on top, ScrolledWindow below)
+        // Main Layout
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         layout.pack_start (header, false, false, 0);
 
         var scrolled = new Gtk.ScrolledWindow (null, null);
-        // We add the 'rounded' class here to help the theme clip the bottom edges
         scrolled.get_style_context ().add_class ("rounded");
         scrolled.add (webview);
         
@@ -100,8 +100,16 @@ public class Figma.Window : Hdy.Window {
 
         webview.load_uri ("https://www.figma.com");
 
-        // Handle Maximize -> Fullscreen transition
+        // Handle Window State Changes (Fullscreen/Maximize)
         this.window_state_event.connect ((event) => {
+            // Hide header in fullscreen, show otherwise
+            if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) != 0) {
+                header.hide ();
+            } else {
+                header.show ();
+            }
+
+            // Handle auto-fullscreen on maximize if needed (as per previous logic)
             if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
                 if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) == 0) {
                     this.fullscreen ();
