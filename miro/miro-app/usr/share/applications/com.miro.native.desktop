@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Miro
+GenericName=Whiteboard Tool
+Comment=The visual workspace for innovation
+Exec=/usr/bin/miro-launcher
+Icon=miro-app
+Terminal=false
+Type=Application
+Categories=Office;Graphics;
+MimeType=text/html;text/xml;application/xhtml+xml;
+StartupWMClass=com.miro.native
+X-GNOME-UsesNotifications=true

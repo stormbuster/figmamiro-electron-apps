@@ -1,0 +1,9 @@
+Package: miro-app
+Version: 1.0.0
+Section: graphics
+Priority: optional
+Architecture: all
+Maintainer: Robert <robert@example.com>
+Depends: libgranite6, libwebkit2gtk-4.1-0, libgtk-3-0, libhandy-1-0
+Description: Miro native standalone application for Elementary OS
+ Native Vala/Granite wrapper for Miro.com

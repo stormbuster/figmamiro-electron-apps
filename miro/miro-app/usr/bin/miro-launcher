@@ -1,0 +1,4 @@
+#!/bin/bash
+# Move to a temporary directory to avoid permissions issues if needed
+# But for a simple webview app, we just launch the native binary
+/usr/bin/miro-native "$@"
