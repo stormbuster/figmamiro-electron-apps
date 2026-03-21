@@ -3,7 +3,7 @@ Version: 1.0.0
 Section: utils
 Priority: optional
 Architecture: all
-Depends: libqt6webenginecore6, libqt6webenginewidgets6, qt6-gtk-platformtheme
+Depends: libgranite6, libwebkit2gtk-4.1-0, libgtk-3-0
 Maintainer: Robert <robert@elementary.os>
 Description: Standalone Figma Web App Wrapper
  A lightweight wrapper for Figma using Chromium's app mode.
