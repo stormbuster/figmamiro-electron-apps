@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Figma
+GenericName=Design Tool
+Comment=Collaborative interface design tool
+Exec=/usr/bin/figma-launcher
+Icon=figma-app
+Terminal=false
+Type=Application
+Categories=Graphics;Design;
+MimeType=text/html;text/xml;application/xhtml+xml;
+Keywords=design;figma;graphics;ui;ux;
+StartupWMClass=www.figma.com
