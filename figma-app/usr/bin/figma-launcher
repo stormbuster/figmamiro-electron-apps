@@ -17,7 +17,13 @@ fi
 
 # Isolated profile and class for standalone experience
 USER_DATA_DIR="$HOME/.config/figma-app"
-mkdir -p "$USER_DATA_DIR"
+mkdir -p "$USER_DATA_DIR/Default"
+
+# Pre-configure Chromium to use system title bar and dark mode
+PREFS_FILE="$USER_DATA_DIR/Default/Preferences"
+if [ ! -f "$PREFS_FILE" ]; then
+    echo '{"browser":{"custom_chrome_frame":false},"extensions":{"ui":{"developer_mode":false}}}' > "$PREFS_FILE"
+fi
 
 $CHROME --app=https://www.figma.com/ \
         --user-data-dir="$USER_DATA_DIR" \
