@@ -14,7 +14,7 @@ public class Figma.App : Granite.Application {
         var window = new Figma.Window (this);
         window.show_all ();
         
-        // Setup Fullscreen Toggle (CTRL + F11 and F11)
+        // Setup Fullscreen Toggle
         var fullscreen_action = new SimpleAction ("fullscreen_toggle", null);
         fullscreen_action.activate.connect (() => {
             var state = window.get_window ().get_state ();
@@ -53,7 +53,14 @@ public class Figma.Window : Gtk.Window {
             name: "com-figma-native"
         );
 
-        // HeaderBar matching Files/Terminal
+        // Required for transparency support in GTK windows
+        var screen = this.get_screen ();
+        var visual = screen.get_rgba_visual ();
+        if (visual != null) {
+            this.set_visual (visual);
+        }
+
+        // HeaderBar matching EOS 8 standard
         var header = new Gtk.HeaderBar ();
         header.show_close_button = true;
         header.title = "Figma";
@@ -67,15 +74,17 @@ public class Figma.Window : Gtk.Window {
         }
 
         // Apply Native Style & Rounded Corners
-        // 'terminal-window' ensures native bottom corner rounding in Elementary OS 8
         this.get_style_context ().add_class ("terminal-window");
-        this.get_style_context ().add_class ("csd");
         this.get_style_context ().add_class ("rounded");
+        this.get_style_context ().add_class ("csd");
 
         var css_provider = new Gtk.CssProvider ();
-        // Aggressive CSS to ensure clipping of the webview at the bottom
-        string css = "window#com-figma-native, window#com-figma-native decoration { border-radius: 12px; } " +
-                     ".figma-container, .figma-container scrolledwindow { border-radius: 0 0 12px 12px; overflow: hidden; } " +
+        // The key is making the window background transparent and ensuring the 
+        // main container has the radius and hidden overflow.
+        string css = "window#com-figma-native { background-color: transparent; } " +
+                     "window#com-figma-native decoration { border-radius: 12px; } " +
+                     ".figma-container { border-radius: 0 0 12px 12px; overflow: hidden; background-color: @theme_bg_color; } " +
+                     ".figma-container scrolledwindow { border-radius: 0 0 12px 12px; overflow: hidden; } " +
                      "webview { background-color: transparent; }";
         try {
             css_provider.load_from_data (css);
@@ -93,14 +102,14 @@ public class Figma.Window : Gtk.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Transparent BG to allow parent rounding to show
+        // Set background color to transparent
         var transparent = Gdk.RGBA () { alpha = 0.0 };
         webview.set_background_color (transparent);
         
-        // Figma-specific User Agent
+        // Figma-specific User Agent override
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-        // Add to window using a container that enforces clipping
+        // Main layout container
         var container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         container.get_style_context ().add_class ("figma-container");
         
@@ -112,7 +121,7 @@ public class Figma.Window : Gtk.Window {
 
         webview.load_uri ("https://www.figma.com");
 
-        // Handle Maximize -> Fullscreen as requested
+        // Handle Maximize -> Fullscreen transition
         this.window_state_event.connect ((event) => {
             if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
                 if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) == 0) {
