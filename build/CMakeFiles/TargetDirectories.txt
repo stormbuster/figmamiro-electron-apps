@@ -1,0 +1,7 @@
+/home/robert/Projects/Figma/build/CMakeFiles/figma-app.dir
+/home/robert/Projects/Figma/build/CMakeFiles/edit_cache.dir
+/home/robert/Projects/Figma/build/CMakeFiles/rebuild_cache.dir
+/home/robert/Projects/Figma/build/CMakeFiles/list_install_components.dir
+/home/robert/Projects/Figma/build/CMakeFiles/install.dir
+/home/robert/Projects/Figma/build/CMakeFiles/install/local.dir
+/home/robert/Projects/Figma/build/CMakeFiles/install/strip.dir
