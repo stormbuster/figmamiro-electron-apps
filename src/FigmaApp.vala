@@ -4,6 +4,7 @@ using Granite;
 
 public class Figma.App : Granite.Application {
     public App () {
+        // Set application ID and use it as the window class name
         Object (
             application_id: "com.figma.native",
             flags: ApplicationFlags.FLAGS_NONE
@@ -49,6 +50,19 @@ public class Figma.Window : Gtk.Window {
             warning ("Could not load icon: %s", e.message);
         }
 
+        // Apply CSS for rounded corners (8px radius matches Files app)
+        var css_provider = new Gtk.CssProvider ();
+        string css = ".figma-window { border-radius: 8px; background: transparent; } " +
+                     ".figma-window scrolledwindow { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; } " +
+                     ".figma-window webview { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }";
+        try {
+            css_provider.load_from_data (css);
+            this.get_style_context ().add_class ("figma-window");
+            this.get_style_context ().add_provider (css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+        } catch (Error e) {
+            warning ("Could not load CSS: %s", e.message);
+        }
+
         // WebKit View
         var webview = new WebKit.WebView ();
         var settings = webview.get_settings ();
@@ -72,9 +86,6 @@ public class Figma.Window : Gtk.Window {
         this.window_state_event.connect ((event) => {
             if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
                 this.fullscreen ();
-            } else if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) == 0) {
-                // Optional: Un-fullscreen if unmaximized
-                // this.unfullscreen ();
             }
             return false;
         });
