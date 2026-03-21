@@ -6,6 +6,7 @@ dependencies = [
     dependency('gtk+-3.0'),
     dependency('granite'),
     dependency('webkit2gtk-4.1'),
+    dependency('libhandy-1'),
 ]
 
 executable('figma-native-vala',

@@ -1,6 +1,7 @@
 using Gtk;
 using WebKit;
 using Granite;
+using Hdy;
 
 public class Figma.App : Granite.Application {
     public App () {
@@ -11,6 +12,9 @@ public class Figma.App : Granite.Application {
     }
 
     protected override void activate () {
+        // Initialize Libhandy for standard EOS 8 rounding/CSD support
+        Hdy.init ();
+        
         var window = new Figma.Window (this);
         window.show_all ();
         
@@ -42,7 +46,7 @@ public class Figma.App : Granite.Application {
     }
 }
 
-public class Figma.Window : Gtk.Window {
+public class Figma.Window : Hdy.Window {
     public Window (Gtk.Application app) {
         Object (
             application: app,
@@ -53,11 +57,8 @@ public class Figma.Window : Gtk.Window {
             name: "com-figma-native"
         );
 
-        // Required for transparency support
-        this.set_visual (this.get_screen ().get_rgba_visual ());
-
-        // HeaderBar matching EOS 8
-        var header = new Gtk.HeaderBar ();
+        // HeaderBar matching EOS 8 standard (using Hdy.HeaderBar for better integration)
+        var header = new Hdy.HeaderBar ();
         header.show_close_button = true;
         header.title = "Figma";
         set_titlebar (header);
@@ -70,37 +71,22 @@ public class Figma.Window : Gtk.Window {
         }
 
         // Apply Native Style
-        this.get_style_context ().add_class ("terminal-window");
         this.get_style_context ().add_class ("rounded");
         this.get_style_context ().add_class ("csd");
 
         var css_provider = new Gtk.CssProvider ();
-        // Window level CSS
-        string window_css = "window#com-figma-native { background-color: transparent; border-radius: 12px; } " +
-                            "window#com-figma-native decoration { border-radius: 12px; } " +
-                            ".figma-container { border-radius: 0 0 12px 12px; overflow: hidden; background-color: @theme_bg_color; }";
+        // Hdy.Window handles rounding naturally, but we reinforce it for the WebView
+        string css = "window#com-figma-native { border-radius: 12px; } " +
+                     "window#com-figma-native .view { border-radius: 0 0 12px 12px; } ";
         try {
-            css_provider.load_from_data (window_css);
+            css_provider.load_from_data (css);
             this.get_style_context ().add_provider (css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
         } catch (Error e) {
             warning ("Could not load CSS: %s", e.message);
         }
 
-        // WebKit Setup with CSS Injection
-        var content_manager = new WebKit.UserContentManager ();
-        
-        // Inject CSS into the loaded page to force the content to round at the bottom
-        // This is the only reliable way to clip a hardware-accelerated WebKit view in GTK3
-        string injected_css = "html, body { border-radius: 0 0 12px 12px !important; overflow: hidden !important; }";
-        var style_sheet = new WebKit.UserStyleSheet (
-            injected_css, 
-            WebKit.UserContentInjectedFrames.ALL_FRAMES, 
-            WebKit.UserStyleLevel.USER, 
-            null, null
-        );
-        content_manager.add_style_sheet (style_sheet);
-
-        var webview = new WebKit.WebView.with_user_content_manager (content_manager);
+        // WebKit View
+        var webview = new WebKit.WebView ();
         var settings = webview.get_settings ();
         
         // Performance & Features
@@ -108,7 +94,7 @@ public class Figma.Window : Gtk.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Transparent BG
+        // Background transparency to allow Hdy.Window's rounding to clip
         var transparent = Gdk.RGBA () { alpha = 0.0 };
         webview.set_background_color (transparent);
         
@@ -116,18 +102,15 @@ public class Figma.Window : Gtk.Window {
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
         // Layout
-        var container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        container.get_style_context ().add_class ("figma-container");
-        
         var scrolled = new Gtk.ScrolledWindow (null, null);
+        scrolled.get_style_context ().add_class ("rounded");
         scrolled.add (webview);
         
-        container.pack_start (scrolled, true, true, 0);
-        add (container);
+        add (scrolled);
 
         webview.load_uri ("https://www.figma.com");
 
-        // Fullscreen toggle logic
+        // Handle Maximize -> Fullscreen transition
         this.window_state_event.connect ((event) => {
             if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
                 if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) == 0) {
