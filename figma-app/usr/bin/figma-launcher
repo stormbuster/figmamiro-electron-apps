@@ -25,6 +25,31 @@ if [ ! -f "$PREFS_FILE" ]; then
     echo '{"browser":{"custom_chrome_frame":false},"extensions":{"ui":{"developer_mode":false}}}' > "$PREFS_FILE"
 fi
 
+# Background monitor for fullscreen-on-maximise behavior
+(
+    while true; do
+        # Find the window ID for figma-app
+        WINDOW_ID=$(wmctrl -lx 2>/dev/null | grep figma-app | awk '{print $1}' | head -1)
+        if [ -n "$WINDOW_ID" ]; then
+            # Get the current window state
+            STATE=$(xprop -id $WINDOW_ID _NET_WM_STATE 2>/dev/null)
+            if echo "$STATE" | grep -q "MAXIMIZED"; then
+                if ! echo "$STATE" | grep -q "FULLSCREEN"; then
+                    # Maximize button was clicked, toggle to fullscreen
+                    wmctrl -ir "$WINDOW_ID" -b add,fullscreen
+                fi
+            elif echo "$STATE" | grep -q "FULLSCREEN"; then
+                # If it's not maximized but is fullscreen, user might want to exit
+                # However, exiting fullscreen usually triggers restore, which is not maximized.
+                # So we leave it for now or check if it's "RESTORED"
+                :
+            fi
+        fi
+        sleep 0.5
+    done
+) &
+MONITOR_PID=$!
+
 $CHROME --app=https://www.figma.com/ \
         --user-data-dir="$USER_DATA_DIR" \
         --class="figma-app" \
@@ -34,3 +59,6 @@ $CHROME --app=https://www.figma.com/ \
         --ozone-platform-hint=auto \
         --new-window \
         "$@"
+
+# Clean up the monitor process when Chrome closes
+kill $MONITOR_PID 2>/dev/null
