@@ -14,25 +14,28 @@ public class Figma.App : Granite.Application {
         var window = new Figma.Window (this);
         window.show_all ();
         
-        // Setup Fullscreen Toggle (CTRL + F11)
+        // Setup Fullscreen Toggle (Standard F11 + User-requested CTRL+F11)
         var fullscreen_action = new SimpleAction ("fullscreen_toggle", null);
         fullscreen_action.activate.connect (() => {
-            if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) != 0) {
+            var state = window.get_window ().get_state ();
+            if ((state & Gdk.WindowState.FULLSCREEN) != 0) {
                 window.unfullscreen ();
             } else {
                 window.fullscreen ();
             }
         });
         this.add_action (fullscreen_action);
-        this.set_accels_for_action ("app.fullscreen_toggle", { "<Primary>F11" });
+        
+        // Primary is Ctrl, and we add both as possible accelerators
+        this.set_accels_for_action ("app.fullscreen_toggle", new string[] { "F11", "<Primary>F11" });
 
-        // Setup Quit (CTRL + Q)
+        // Setup Quit (Standard CTRL + Q)
         var quit_action = new SimpleAction ("quit", null);
         quit_action.activate.connect (() => {
             this.quit ();
         });
         this.add_action (quit_action);
-        this.set_accels_for_action ("app.quit", { "<Primary>Q" });
+        this.set_accels_for_action ("app.quit", new string[] { "<Primary>Q" });
     }
 
     public static int main (string[] args) {
@@ -55,11 +58,7 @@ public class Figma.Window : Gtk.Window {
         // HeaderBar matching Files app
         var header = new Gtk.HeaderBar ();
         header.show_close_button = true;
-        
-        // Window Title
-        var title_label = new Gtk.Label ("Figma");
-        title_label.get_style_context ().add_class ("h2");
-        header.set_custom_title (title_label);
+        header.title = "Figma"; // Sets a standard centered title
         
         set_titlebar (header);
 
@@ -71,15 +70,16 @@ public class Figma.Window : Gtk.Window {
         }
 
         // Apply Native Style & Rounded Corners
+        // 'rounded' and 'csd' classes are standard for Granite apps
         this.get_style_context ().add_class ("rounded");
         this.get_style_context ().add_class ("csd");
 
         var css_provider = new Gtk.CssProvider ();
-        // Targeting the 'view' and 'scrolledwindow' specifically to force rounding overflow
+        // Critical: Using border-radius and overflow: hidden on the container
+        // to ensure children (WebView) are clipped at the bottom.
         string css = "window#com-figma-native, window#com-figma-native decoration { border-radius: 12px; } " +
                      "window#com-figma-native scrolledwindow { border-radius: 0 0 12px 12px; overflow: hidden; } " +
-                     "window#com-figma-native webview { border-radius: 0 0 12px 12px; background-color: transparent; } " +
-                     "window#com-figma-native .view { border-radius: 0 0 12px 12px; }";
+                     "window#com-figma-native webview { background-color: transparent; }";
         try {
             css_provider.load_from_data (css);
             this.get_style_context ().add_provider (css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
@@ -96,11 +96,11 @@ public class Figma.Window : Gtk.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Transparency is key for rounded bottom corners
+        // Make background transparent so the window's rounded corners can show through
         var transparent = Gdk.RGBA () { alpha = 0.0 };
         webview.set_background_color (transparent);
         
-        // Figma-specific User Agent override
+        // Figma-specific User Agent
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
         // Add to window
