@@ -22,6 +22,8 @@ public class Figma.App : Granite.Application {
 }
 
 public class Figma.Window : Gtk.Window {
+    private bool is_fullscreen = false;
+
     public Window (Gtk.Application app) {
         Object (
             application: app,
@@ -74,7 +76,7 @@ public class Figma.Window : Gtk.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Ensure webview doesn't draw its own opaque background
+        // Transparency for rounding
         var transparent = Gdk.RGBA () { alpha = 0.0 };
         webview.set_background_color (transparent);
         
@@ -88,26 +90,28 @@ public class Figma.Window : Gtk.Window {
 
         webview.load_uri ("https://www.figma.com");
 
-        // Handle Maximize -> Fullscreen as requested
+        // Sync local fullscreen state
         this.window_state_event.connect ((event) => {
-            if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
+            is_fullscreen = (event.new_window_state & Gdk.WindowState.FULLSCREEN) != 0;
+            
+            // Auto-fullscreen on maximize as requested
+            if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0 && !is_fullscreen) {
                 this.fullscreen ();
             }
             return false;
         });
 
-        // Toggle Fullscreen on CTRL + F11 as requested
-        this.key_press_event.connect ((event) => {
-            // In Vala 0.56, keys are in Gdk.Key
-            if (event.keyval == Gdk.Key.F11 && (event.state & Gdk.ModifierType.CONTROL_MASK) != 0) {
-                if ((this.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) != 0) {
-                    this.unfullscreen ();
-                } else {
-                    this.fullscreen ();
-                }
-                return true;
+        // Use AccelGroup for high-priority shortcut handling
+        var accel_group = new Gtk.AccelGroup ();
+        this.add_accel_group (accel_group);
+        
+        accel_group.connect (Gdk.Key.F11, Gdk.ModifierType.CONTROL_MASK, Gtk.AccelFlags.VISIBLE, (group, obj, key, mod) => {
+            if (is_fullscreen) {
+                this.unfullscreen ();
+            } else {
+                this.fullscreen ();
             }
-            return false;
+            return true;
         });
     }
 }
