@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copy latest binary
+cp build-vala/figma-native-vala figma-app/usr/bin/figma-native
+
 # Set permissions
 chmod 755 figma-app/usr/bin/figma-launcher
 chmod 755 figma-app/usr/bin/figma-native
