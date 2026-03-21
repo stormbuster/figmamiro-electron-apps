@@ -9,4 +9,4 @@ Type=Application
 Categories=Graphics;Design;
 MimeType=text/html;text/xml;application/xhtml+xml;
 Keywords=design;figma;graphics;ui;ux;
-StartupWMClass=www.figma.com
+StartupWMClass=figma-app

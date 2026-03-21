@@ -15,13 +15,14 @@ else
     exit 1
 fi
 
-# Optimized flags for Figma on Elementary OS 8 (Wayland/X11)
-# --app=https://www.figma.com/ (Launches in app mode, no browser UI)
-# --enable-features=TouchpadPinch,TouchpadPinchToZoom (Enables pinch-to-zoom gestures)
-# --enable-pinch (Enables pinch gestures)
-# --ozone-platform-hint=auto (Optimizes for Wayland if available, falling back to X11)
+# Isolated profile and class for standalone experience
+USER_DATA_DIR="$HOME/.config/figma-app"
+mkdir -p "$USER_DATA_DIR"
 
 $CHROME --app=https://www.figma.com/ \
+        --user-data-dir="$USER_DATA_DIR" \
+        --class="figma-app" \
+        --name="figma-app" \
         --enable-features=TouchpadPinch,TouchpadPinchToZoom \
         --enable-pinch \
         --ozone-platform-hint=auto \
