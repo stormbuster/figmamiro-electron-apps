@@ -12,7 +12,6 @@ public class Figma.App : Granite.Application {
     }
 
     protected override void activate () {
-        // Initialize Libhandy for standard EOS 8 rounding/CSD support
         Hdy.init ();
         
         var window = new Figma.Window (this);
@@ -57,11 +56,11 @@ public class Figma.Window : Hdy.Window {
             name: "com-figma-native"
         );
 
-        // HeaderBar matching EOS 8 standard (using Hdy.HeaderBar for better integration)
+        // HeaderBar matching EOS 8 standard
+        // In Hdy.Window, we don't use set_titlebar(). We add the header to the top of the main layout.
         var header = new Hdy.HeaderBar ();
         header.show_close_button = true;
         header.title = "Figma";
-        set_titlebar (header);
 
         // Set Icon
         try {
@@ -74,17 +73,6 @@ public class Figma.Window : Hdy.Window {
         this.get_style_context ().add_class ("rounded");
         this.get_style_context ().add_class ("csd");
 
-        var css_provider = new Gtk.CssProvider ();
-        // Hdy.Window handles rounding naturally, but we reinforce it for the WebView
-        string css = "window#com-figma-native { border-radius: 12px; } " +
-                     "window#com-figma-native .view { border-radius: 0 0 12px 12px; } ";
-        try {
-            css_provider.load_from_data (css);
-            this.get_style_context ().add_provider (css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-        } catch (Error e) {
-            warning ("Could not load CSS: %s", e.message);
-        }
-
         // WebKit View
         var webview = new WebKit.WebView ();
         var settings = webview.get_settings ();
@@ -94,19 +82,21 @@ public class Figma.Window : Hdy.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Background transparency to allow Hdy.Window's rounding to clip
-        var transparent = Gdk.RGBA () { alpha = 0.0 };
-        webview.set_background_color (transparent);
-        
         // Figma-specific User Agent
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-        // Layout
+        // Main Layout (Header on top, ScrolledWindow below)
+        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        layout.pack_start (header, false, false, 0);
+
         var scrolled = new Gtk.ScrolledWindow (null, null);
+        // We add the 'rounded' class here to help the theme clip the bottom edges
         scrolled.get_style_context ().add_class ("rounded");
         scrolled.add (webview);
         
-        add (scrolled);
+        layout.pack_start (scrolled, true, true, 0);
+        
+        add (layout);
 
         webview.load_uri ("https://www.figma.com");
 
