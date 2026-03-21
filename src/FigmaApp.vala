@@ -6,13 +6,33 @@ public class Figma.App : Granite.Application {
     public App () {
         Object (
             application_id: "com.figma.native",
-            flags: ApplicationFlags.FLAGS_NONE
+            flags: GLib.ApplicationFlags.FLAGS_NONE
         );
     }
 
     protected override void activate () {
         var window = new Figma.Window (this);
         window.show_all ();
+        
+        // Setup Fullscreen Toggle (CTRL + F11)
+        var fullscreen_action = new SimpleAction ("fullscreen_toggle", null);
+        fullscreen_action.activate.connect (() => {
+            if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) != 0) {
+                window.unfullscreen ();
+            } else {
+                window.fullscreen ();
+            }
+        });
+        this.add_action (fullscreen_action);
+        this.set_accels_for_action ("app.fullscreen_toggle", { "<Primary>F11" });
+
+        // Setup Quit (CTRL + Q)
+        var quit_action = new SimpleAction ("quit", null);
+        quit_action.activate.connect (() => {
+            this.quit ();
+        });
+        this.add_action (quit_action);
+        this.set_accels_for_action ("app.quit", { "<Primary>Q" });
     }
 
     public static int main (string[] args) {
@@ -22,8 +42,6 @@ public class Figma.App : Granite.Application {
 }
 
 public class Figma.Window : Gtk.Window {
-    private bool is_fullscreen = false;
-
     public Window (Gtk.Application app) {
         Object (
             application: app,
@@ -57,9 +75,11 @@ public class Figma.Window : Gtk.Window {
         this.get_style_context ().add_class ("csd");
 
         var css_provider = new Gtk.CssProvider ();
+        // Targeting the 'view' and 'scrolledwindow' specifically to force rounding overflow
         string css = "window#com-figma-native, window#com-figma-native decoration { border-radius: 12px; } " +
                      "window#com-figma-native scrolledwindow { border-radius: 0 0 12px 12px; overflow: hidden; } " +
-                     "window#com-figma-native webview { border-radius: 0 0 12px 12px; background: transparent; }";
+                     "window#com-figma-native webview { border-radius: 0 0 12px 12px; background-color: transparent; } " +
+                     "window#com-figma-native .view { border-radius: 0 0 12px 12px; }";
         try {
             css_provider.load_from_data (css);
             this.get_style_context ().add_provider (css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
@@ -76,11 +96,11 @@ public class Figma.Window : Gtk.Window {
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
         
-        // Transparency for rounding
+        // Transparency is key for rounded bottom corners
         var transparent = Gdk.RGBA () { alpha = 0.0 };
         webview.set_background_color (transparent);
         
-        // Figma-specific User Agent
+        // Figma-specific User Agent override
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
         // Add to window
@@ -90,28 +110,14 @@ public class Figma.Window : Gtk.Window {
 
         webview.load_uri ("https://www.figma.com");
 
-        // Sync local fullscreen state
+        // Handle Maximize -> Fullscreen transition
         this.window_state_event.connect ((event) => {
-            is_fullscreen = (event.new_window_state & Gdk.WindowState.FULLSCREEN) != 0;
-            
-            // Auto-fullscreen on maximize as requested
-            if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0 && !is_fullscreen) {
-                this.fullscreen ();
+            if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
+                if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) == 0) {
+                    this.fullscreen ();
+                }
             }
             return false;
-        });
-
-        // Use AccelGroup for high-priority shortcut handling
-        var accel_group = new Gtk.AccelGroup ();
-        this.add_accel_group (accel_group);
-        
-        accel_group.connect (Gdk.Key.F11, Gdk.ModifierType.CONTROL_MASK, Gtk.AccelFlags.VISIBLE, (group, obj, key, mod) => {
-            if (is_fullscreen) {
-                this.unfullscreen ();
-            } else {
-                this.fullscreen ();
-            }
-            return true;
         });
     }
 }
