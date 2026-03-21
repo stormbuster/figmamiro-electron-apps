@@ -47,6 +47,9 @@ public class Figma.App : Granite.Application {
 
 public class Figma.Window : Hdy.Window {
     private Hdy.HeaderBar header;
+    private WebKit.WebView webview;
+    private WebKit.WebContext context;
+    private WebKit.WebsiteDataManager data_manager;
 
     public Window (Gtk.Application app) {
         Object (
@@ -74,8 +77,30 @@ public class Figma.Window : Hdy.Window {
         this.get_style_context ().add_class ("rounded");
         this.get_style_context ().add_class ("csd");
 
+        // --- SESSION PERSISTENCE ---
+        string data_dir = GLib.Environment.get_user_data_dir () + "/com.figma.native";
+        string cache_dir = GLib.Environment.get_user_cache_dir () + "/com.figma.native";
+        
+        // Ensure directories exist
+        GLib.DirUtils.create_with_parents (data_dir, 0700);
+        GLib.DirUtils.create_with_parents (cache_dir, 0700);
+
+        // Create DataManager via Object.new due to protected constructor in Vala
+        data_manager = GLib.Object.new (typeof (WebKit.WebsiteDataManager),
+            "base-data-directory", data_dir,
+            "base-cache-directory", cache_dir) as WebKit.WebsiteDataManager;
+
+        context = new WebKit.WebContext.with_website_data_manager (data_manager);
+        context.set_cache_model (WebKit.CacheModel.WEB_BROWSER);
+        
+        // Persistent Cookies
+        var cookie_manager = data_manager.get_cookie_manager ();
+        cookie_manager.set_accept_policy (WebKit.CookieAcceptPolicy.ALWAYS);
+        cookie_manager.set_persistent_storage (data_dir + "/cookies.db", WebKit.CookiePersistentStorage.SQLITE);
+        // ---------------------------
+
         // WebKit View
-        var webview = new WebKit.WebView ();
+        webview = new WebKit.WebView.with_context (context);
         var settings = webview.get_settings ();
         
         // Performance & Features
@@ -100,18 +125,18 @@ public class Figma.Window : Hdy.Window {
 
         webview.load_uri ("https://www.figma.com");
 
-        // Handle Window State Changes (Fullscreen/Maximize)
+        // Fullscreen toggle logic refined for EOS 8
         this.window_state_event.connect ((event) => {
-            // Hide header in fullscreen, show otherwise
-            if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) != 0) {
+            bool is_fullscreen = (event.new_window_state & Gdk.WindowState.FULLSCREEN) != 0;
+            
+            if (is_fullscreen) {
                 header.hide ();
             } else {
                 header.show ();
             }
 
-            // Handle auto-fullscreen on maximize if needed (as per previous logic)
             if ((event.new_window_state & Gdk.WindowState.MAXIMIZED) != 0) {
-                if ((event.new_window_state & Gdk.WindowState.FULLSCREEN) == 0) {
+                if (!is_fullscreen) {
                     this.fullscreen ();
                 }
             }
