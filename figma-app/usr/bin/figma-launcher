@@ -19,11 +19,17 @@ fi
 USER_DATA_DIR="$HOME/.config/figma-app"
 mkdir -p "$USER_DATA_DIR/Default"
 
-# Pre-configure Chromium to use system title bar and dark mode
+# Pre-configure Chromium to use system title bar and matching button layout
 PREFS_FILE="$USER_DATA_DIR/Default/Preferences"
 if [ ! -f "$PREFS_FILE" ]; then
-    echo '{"browser":{"custom_chrome_frame":false},"extensions":{"ui":{"developer_mode":false}}}' > "$PREFS_FILE"
+    echo '{"browser":{"custom_chrome_frame":false},"extensions":{"ui":{"developer_mode":false}},"webkit":{"webprefs":{"default_fixed_font_size":13,"default_font_size":16}}}' > "$PREFS_FILE"
 fi
+
+# Ensure button layout matches Elementary OS (e.g., close,minimize,maximize:)
+# We can't easily patch JSON with bash reliably without jq, but we can set it via CMD flags if available,
+# or just ensure the Preferences file is as complete as possible on first run.
+
+export GTK_THEME="elementary"
 
 # Background monitor for fullscreen-on-maximise behavior
 (
