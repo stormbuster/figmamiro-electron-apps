@@ -59,8 +59,11 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     
-    // Pass Chromium flags for gestures (Pinch-to-zoom)
-    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-features=TouchpadPinch --enable-pinch");
+    // Pass Chromium flags for acceleration as requested
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", 
+            "--enable-gpu-rasterization --enable-oop-rasterization --enable-zero-copy "
+            "--enable-gpu-compositing --enable-accelerated-2d-canvas --ignore-gpu-blacklist --use-gl=desktop"
+            " --enable-features=TouchpadPinch --enable-pinch");
 
     QApplication app(argc, argv);
     

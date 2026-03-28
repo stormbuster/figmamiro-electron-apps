@@ -1,4 +1,7 @@
 #!/bin/bash
 # Move to a temporary directory to avoid permissions issues if needed
-# But for a simple webview app, we just launch the native binary
-/usr/bin/miro-native "$@"
+# Launch the native binary with GPU optimizations
+export WEBKIT_FORCE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_COMPOSITING_MODE=0
+
+# Chromium-style flags reference (if switching engines):

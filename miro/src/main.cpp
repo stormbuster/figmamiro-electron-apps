@@ -7,20 +7,20 @@
 #include <QDir>
 #include <QEvent>
 
-class FigmaWindow : public QWebEngineView {
+class MiroWindow : public QWebEngineView {
 public:
-    FigmaWindow() {
+    MiroWindow() {
         // Set window properties
-        setWindowTitle("Figma");
+        setWindowTitle("Miro");
         
         // Use the SVG icon we created earlier
-        setWindowIcon(QIcon("/usr/share/icons/hicolor/scalable/apps/figma-app.svg"));
+        setWindowIcon(QIcon("/usr/share/icons/hicolor/scalable/apps/miro-app.svg"));
         
         // Isolation: Use a dedicated profile and storage path
-        QString configPath = QDir::homePath() + "/.config/figma-app";
+        QString configPath = QDir::homePath() + "/.config/miro-app";
         QDir().mkpath(configPath);
         
-        QWebEngineProfile *profile = new QWebEngineProfile("figma-app", this);
+        QWebEngineProfile *profile = new QWebEngineProfile("miro-app", this);
         profile->setPersistentStoragePath(configPath + "/qtwebengine");
         profile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
         
@@ -37,8 +37,8 @@ public:
         // Create page with profile
         setPage(new QWebEnginePage(profile, this));
         
-        // Load Figma
-        load(QUrl("https://www.figma.com/"));
+        // Load Miro
+        load(QUrl("https://miro.com/"));
     }
 
 protected:
@@ -59,15 +59,18 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     
-    // Pass Chromium flags for gestures (Pinch-to-zoom)
-    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-features=TouchpadPinch --enable-pinch");
+    // Pass Chromium flags for acceleration as requested
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", 
+            "--enable-gpu-rasterization --enable-oop-rasterization --enable-zero-copy "
+            "--enable-gpu-compositing --enable-accelerated-2d-canvas --ignore-gpu-blacklist --use-gl=desktop"
+            " --enable-features=TouchpadPinch --enable-pinch");
 
     QApplication app(argc, argv);
     
     // Ensure we use the elementary GTK theme if possible
     app.setDesktopFileName("figma-app");
 
-    FigmaWindow win;
+    MiroWindow win;
     win.resize(1280, 800);
     win.show();
     

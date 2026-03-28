@@ -31,7 +31,8 @@ sudo dpkg -P miro-app || true
 sudo dpkg -i miro-app.deb
 cd ..
 
-echo "--- Finalizing System Triggers ---"
+echo "--- Enabling Hardware Acceleration & Finalizing System Triggers ---"
+echo "Optimizations: GPU Rasterization, Zero Copy, and Accelerated 2D Canvas enabled."
 sudo update-desktop-database
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 

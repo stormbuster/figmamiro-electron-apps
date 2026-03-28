@@ -2,5 +2,8 @@
 # Native C++ Figma Wrapper for Elementary OS 8
 # This binary uses Qt6 WebEngine (true Chromium engine) for premium performance.
 
-# Launch the native binary
-/usr/bin/figma-native "$@"
+# Launch the native binary with GPU optimizations
+export WEBKIT_FORCE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_COMPOSITING_MODE=0
+
+# Chromium-style flags reference (if switching engines):
