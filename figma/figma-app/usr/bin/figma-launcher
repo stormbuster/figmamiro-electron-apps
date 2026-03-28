@@ -7,3 +7,7 @@ export WEBKIT_FORCE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_COMPOSITING_MODE=0
 
 # Chromium-style flags reference (if switching engines):
+# --enable-gpu-rasterization --enable-oop-rasterization --enable-zero-copy 
+# --enable-gpu-compositing --enable-accelerated-2d-canvas --ignore-gpu-blacklist --use-gl=desktop
+
+/usr/bin/figma-native "$@"
