@@ -1,0 +1,4 @@
+#!/bin/bash
+# Set fixed permissions for the Chrome-sandbox helper binary
+chown root:root /opt/figma-native/chrome-sandbox
+chmod 4755 /opt/figma-native/chrome-sandbox

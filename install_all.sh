@@ -5,17 +5,16 @@ echo "--- Cleaning up existing instances ---"
 pkill -f figma-native || true
 pkill -f miro-native || true
 
-echo "--- Building and Installing FIGMA ---"
-cd figma
-# Clean and Setup build dir
-rm -rf build-vala
-meson setup build-vala --prefix=/usr
-meson compile -C build-vala
-# Ensure binary is copied
+echo "--- Building and Installing FIGMA (Electron Fork) ---"
+cd figma-linux-source
+# Build Electron app (only the unpacked directory needed for our .deb)
+npm run build && npm run builder -- --dir
+cd ../figma
+# Build .deb package using the new Electron bundle
 ./build_deb.sh
 # Purge and re-install
 sudo dpkg -P figma-app || true
-sudo dpkg -i figma-app.deb
+sudo dpkg --force-all -i figma-app.deb
 cd ..
 
 echo "--- Building and Installing MIRO ---"

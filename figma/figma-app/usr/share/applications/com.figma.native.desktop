@@ -2,11 +2,11 @@
 Name=Figma
 GenericName=Design Tool
 Comment=Collaborative interface design tool
-Exec=/usr/bin/figma-launcher
+Exec=/usr/bin/figma-launcher %u
 Icon=figma-app
 Terminal=false
 Type=Application
 Categories=Graphics;Design;
-MimeType=text/html;text/xml;application/xhtml+xml;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/figma;x-scheme-handler/figma-native;
 Keywords=design;figma;graphics;ui;ux;
 StartupWMClass=com.figma.native
