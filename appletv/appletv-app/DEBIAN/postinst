@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+# Update database of desktop files
+update-desktop-database -q || true
+
+# Update icon cache
+gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+
+exit 0

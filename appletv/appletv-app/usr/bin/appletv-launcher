@@ -1,0 +1,3 @@
+#!/bin/bash
+# Launch the Apple TV Electron binary
+/opt/appletv-native/appletv --no-sandbox --ozone-platform-hint=auto "$@"

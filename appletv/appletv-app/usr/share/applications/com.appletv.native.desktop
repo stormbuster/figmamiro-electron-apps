@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Apple TV
+Comment=Apple TV native application wrapper
+Exec=appletv-launcher %U
+Icon=appletv-app
+Terminal=false
+Type=Application
+Categories=Video;AudioVideo;
+StartupNotify=true
+StartupWMClass=com.appletv.native

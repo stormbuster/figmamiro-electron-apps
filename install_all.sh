@@ -30,9 +30,19 @@ sudo dpkg -P miro-app || true
 sudo dpkg -i miro-app.deb
 cd ..
 
+echo "--- Building and Installing Apple TV ---"
+cd appletv-source
+npm install
+npm run build
+cd ../appletv
+./build_deb.sh
+sudo dpkg -P appletv-app || true
+sudo dpkg --force-all -i appletv-app.deb
+cd ..
+
 echo "--- Enabling Hardware Acceleration & Finalizing System Triggers ---"
 echo "Optimizations: GPU Rasterization, Zero Copy, and Accelerated 2D Canvas enabled."
 sudo update-desktop-database
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 
-echo "--- Done! Both apps are ready to launch ---"
+echo "--- Done! All apps are ready to launch ---"

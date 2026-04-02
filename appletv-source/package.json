@@ -1,0 +1,24 @@
+{
+  "name": "appletv-native",
+  "productName": "com.appletv.native",
+  "version": "1.0.0",
+  "description": "Apple TV native application wrapper",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux tar.bz2",
+    "builder": "electron-builder --linux tar.bz2"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.8",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.appletv.native",
+    "linux": {
+      "target": "dir",
+      "executableName": "appletv"
+    }
+  }
+}
