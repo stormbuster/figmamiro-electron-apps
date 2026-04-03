@@ -11,7 +11,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "electron": "^30.0.8",
+    "electron": "npm:@castlabs/electron-releases@^30.0.8-wv",
     "electron-builder": "^24.13.3"
   },
   "build": {
