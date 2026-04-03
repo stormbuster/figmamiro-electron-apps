@@ -17,6 +17,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
+    fullscreen: true,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
@@ -29,6 +30,11 @@ function createWindow() {
   // Windows User Agent is often required by Apple TV for a more stable Widevine negotiation
   mainWindow.webContents.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
   mainWindow.loadURL('https://tv.apple.com/');
+
+  // Hide scrollbars for a cleaner native look
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.insertCSS('::-webkit-scrollbar { display: none !important; }');
+  });
 
   // Handle F11 for fullscreen toggle
   mainWindow.webContents.on('before-input-event', (event, input) => {
