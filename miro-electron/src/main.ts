@@ -17,7 +17,7 @@ function createWindow() {
         width: 1280,
         height: 800,
         title: 'Miro',
-        icon: path.join(__dirname, '../resources/icon.svg'),
+        icon: path.join(__dirname, '../resources/electron.icns'),
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -99,6 +99,25 @@ function createWindow() {
             }
             #electron-drag-bar * {
                 pointer-events: auto;
+            }
+
+            /* DARK MODE SUPPORT */
+            @media (prefers-color-scheme: dark) {
+                html {
+                    background-color: #1A1A1A !important;
+                }
+                #electron-drag-bar {
+                    background: #1A1A1A;
+                }
+                body::before, body::after {
+                    background: #1A1A1A;
+                }
+                body::before {
+                    background: radial-gradient(circle at 100% 100%, transparent 12px, #1A1A1A 12px);
+                }
+                body::after {
+                    background: radial-gradient(circle at 0% 100%, transparent 12px, #1A1A1A 12px);
+                }
             }
         `);
         

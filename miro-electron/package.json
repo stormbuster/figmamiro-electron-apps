@@ -39,10 +39,34 @@
       "icon": "resources/icon.svg"
     },
     "mac": {
+      "icon": "resources/electron.icns",
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "hardenedRuntime": true,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "extendInfo": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleTypeRole": "Editor",
+            "CFBundleURLName": "MiroApp",
+            "CFBundleURLSchemes": [
+              "miroapp"
+            ]
+          }
+        ],
+        "NSCameraUsageDescription": "To use videochat, Miro needs access to your camera",
+        "NSMicrophoneUsageDescription": "To use videochat, Miro needs access to your microphone",
+        "NSBluetoothAlwaysUsageDescription": "This app needs access to Bluetooth",
+        "NSBluetoothPeripheralUsageDescription": "This app needs access to Bluetooth",
+        "NSPrefersDisplaySafeAreaCompatibilityMode": false,
+        "NSSupportsAutomaticGraphicsSwitching": true,
+        "LSMinimumSystemVersion": "12.0"
+      }
     }
   }
 }
