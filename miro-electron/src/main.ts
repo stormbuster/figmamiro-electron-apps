@@ -1,7 +1,7 @@
-import { app, BrowserWindow, session, globalShortcut } from 'electron';
+import { app, BrowserWindow, BrowserView, session, globalShortcut } from 'electron';
 import * as path from 'path';
 
-// --- PERFORMANCE OPTIMIZATIONS (As per PRD) ---
+// --- PERFORMANCE OPTIMIZATIONS ---
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
@@ -11,6 +11,9 @@ app.commandLine.appendSwitch('ignore-gpu-blacklist');
 app.commandLine.appendSwitch('use-gl', 'desktop');
 
 let mainWindow: BrowserWindow | null = null;
+let miroView: BrowserView | null = null;
+
+const HEADER_HEIGHT = 32;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -18,6 +21,19 @@ function createWindow() {
         height: 800,
         title: 'Miro',
         icon: path.join(__dirname, '../resources/icon.svg'),
+        backgroundColor: '#ffffff',
+        frame: process.platform === 'linux',
+        titleBarStyle: 'hidden',
+        trafficLightPosition: { x: 12, y: 10 },
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true,
+        },
+    });
+
+    // --- SETUP BROWSERVIEW FOR MIRO ---
+    miroView = new BrowserView({
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -25,99 +41,76 @@ function createWindow() {
             devTools: true,
             backgroundThrottling: false,
         },
-        // elementary OS / native feel: rounded corners & frame
-        frame: process.platform === 'linux',
-        titleBarStyle: 'hidden',
-        trafficLightPosition: { x: 12, y: 12 },
-        backgroundColor: '#ffffff',
     });
 
-    // --- HIDE DEFAULT MENU BAR ---
-    mainWindow.setMenuBarVisibility(false);
-    // Alternatively, to completely remove it:
-    // import { Menu } from 'electron';
-    // Menu.setApplicationMenu(null);
-
-    // --- MIRO SPECIFIC USER AGENT ---
-    const userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    mainWindow.loadURL('https://miro.com', { userAgent });
-
-    // --- WHITE HEADER & DRAG REGION ---
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow?.webContents.insertCSS(`
-            html {
-                background-color: white !important;
-                overflow: hidden !important;
-            }
-            body {
-                position: absolute !important;
-                top: 32px !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                margin: 0 !important;
-                height: auto !important;
-            }
-            #electron-drag-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 32px;
-                background: white;
-                z-index: 2147483647;
-                -webkit-app-region: drag;
-                pointer-events: none; /* Allow traffic lights to be clickable */
-            }
-            #electron-drag-bar * {
-                pointer-events: auto;
-            }
-        `);
-        
-        mainWindow?.webContents.executeJavaScript(`
-            if (!document.getElementById('electron-drag-bar')) {
-                const dragBar = document.createElement('div');
-                dragBar.id = 'electron-drag-bar';
-                document.body.parentElement.appendChild(dragBar);
-            }
-        `);
-    });
-
-    // --- PERMISSION HANDLING (Camera, Mic, Geolocation) ---
-    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
-        const allowedPermissions = ['media', 'geolocation', 'notifications', 'pointerLock', 'fullscreen'];
-        if (allowedPermissions.includes(permission)) {
-            callback(true);
-        } else {
-            callback(false);
+    mainWindow.setBrowserView(miroView);
+    
+    // Position the view below our custom title bar area
+    const updateViewBounds = () => {
+        if (mainWindow && miroView) {
+            const { width, height } = mainWindow.getContentBounds();
+            miroView.setBounds({ 
+                x: 0, 
+                y: HEADER_HEIGHT, 
+                width: width, 
+                height: height - HEADER_HEIGHT 
+            });
         }
-    });
+    };
 
-    // Support for specific user media (Camera/Mic)
-    session.defaultSession.setPermissionCheckHandler((webContents, permission, origin) => {
-        return ['media', 'geolocation', 'notifications'].includes(permission);
-    });
+    updateViewBounds();
+    miroView.setAutoResize({ width: true, height: true });
 
-    // --- WINDOW MANAGEMENT (Maximize to Fullscreen Logic) ---
+    // --- LOAD MIRO ---
+    const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    miroView.webContents.loadURL('https://miro.com', { userAgent });
+
+    // --- MAIN WINDOW CONTENT (DRAG REGION) ---
+    // We load a simple HTML string into the background window to make the top area draggable
+    mainWindow.loadURL(`data:text/html,
+        <style>
+            body { 
+                margin: 0; 
+                overflow: hidden; 
+                background: white; 
+                -webkit-app-region: drag; 
+                height: ${HEADER_HEIGHT}px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+        <body></body>
+    `);
+
+    // --- PERMISSION HANDLING ---
+    const setupPermissions = (sess: Electron.Session) => {
+        sess.setPermissionRequestHandler((webContents, permission, callback) => {
+            const allowedPermissions = ['media', 'geolocation', 'notifications', 'pointerLock', 'fullscreen'];
+            callback(allowedPermissions.includes(permission));
+        });
+        sess.setPermissionCheckHandler((webContents, permission, origin) => {
+            return ['media', 'geolocation', 'notifications'].includes(permission);
+        });
+    };
+
+    setupPermissions(session.defaultSession);
+    if (miroView.webContents.session) {
+        setupPermissions(miroView.webContents.session);
+    }
+
+    // --- WINDOW MANAGEMENT ---
     mainWindow.on('maximize', () => {
-        if (mainWindow) {
-            mainWindow.setFullScreen(true);
-            mainWindow.setMenuBarVisibility(false);
-        }
+        mainWindow?.setFullScreen(true);
     });
 
     mainWindow.on('leave-full-screen', () => {
-        if (mainWindow) {
-            mainWindow.setMenuBarVisibility(true);
-            mainWindow.unmaximize();
-        }
+        mainWindow?.unmaximize();
     });
 
     // --- GLOBAL SHORTCUTS ---
     globalShortcut.register('F11', () => {
-        if (mainWindow) {
-            mainWindow.setFullScreen(!mainWindow.isFullScreen());
-        }
+        mainWindow?.setFullScreen(!mainWindow.isFullScreen());
     });
 
     globalShortcut.register('CommandOrControl+Q', () => {
@@ -126,6 +119,7 @@ function createWindow() {
 
     mainWindow.on('closed', () => {
         mainWindow = null;
+        miroView = null;
     });
 }
 
@@ -145,7 +139,6 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Clean up shortcuts on quit
 app.on('will-quit', () => {
     globalShortcut.unregisterAll();
 });
