@@ -29,6 +29,7 @@ function createWindow() {
         frame: process.platform === 'linux',
         titleBarStyle: 'hidden',
         trafficLightPosition: { x: 12, y: 12 },
+        backgroundColor: '#ffffff',
     });
 
     // --- HIDE DEFAULT MENU BAR ---
@@ -40,6 +41,47 @@ function createWindow() {
     // --- MIRO SPECIFIC USER AGENT ---
     const userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     mainWindow.loadURL('https://miro.com', { userAgent });
+
+    // --- WHITE HEADER & DRAG REGION ---
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow?.webContents.insertCSS(`
+            html {
+                background-color: white !important;
+                overflow: hidden !important;
+            }
+            body {
+                position: absolute !important;
+                top: 32px !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
+            }
+            #electron-drag-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 32px;
+                background: white;
+                z-index: 2147483647;
+                -webkit-app-region: drag;
+                pointer-events: none; /* Allow traffic lights to be clickable */
+            }
+            #electron-drag-bar * {
+                pointer-events: auto;
+            }
+        `);
+        
+        mainWindow?.webContents.executeJavaScript(`
+            if (!document.getElementById('electron-drag-bar')) {
+                const dragBar = document.createElement('div');
+                dragBar.id = 'electron-drag-bar';
+                document.body.parentElement.appendChild(dragBar);
+            }
+        `);
+    });
 
     // --- PERMISSION HANDLING (Camera, Mic, Geolocation) ---
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
