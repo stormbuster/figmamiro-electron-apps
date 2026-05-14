@@ -26,7 +26,9 @@ function createWindow() {
             backgroundThrottling: false,
         },
         // elementary OS / native feel: rounded corners & frame
-        frame: true, 
+        frame: process.platform === 'linux',
+        titleBarStyle: 'hidden',
+        trafficLightPosition: { x: 12, y: 12 },
     });
 
     // --- HIDE DEFAULT MENU BAR ---
