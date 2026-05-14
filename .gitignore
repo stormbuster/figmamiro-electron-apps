@@ -6,5 +6,8 @@ figma-linux-source/dist/
 figma-linux-source/build/
 figma/figma-app/opt/
 miro/miro-app/opt/
+miro-electron/out/
+miro-electron/dist/
+miro-electron/node_modules/
 tmp/
 *.log

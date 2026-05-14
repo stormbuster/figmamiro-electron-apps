@@ -1,0 +1,48 @@
+{
+  "name": "miro-app",
+  "version": "1.0.0",
+  "description": "Miro Desktop App (Electron Edition)",
+  "author": "Antigravity <antigravity@example.com>",
+  "homepage": "https://miro.com",
+  "main": "dist/main.js",
+  "files": [
+    "dist/**/*",
+    "resources/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "dev": "nodemon --watch src --ext ts --exec npm start",
+    "package": "npm run build && electron-builder"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.8",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.miro.native",
+    "productName": "Miro",
+    "executableName": "miro",
+    "directories": {
+      "output": "out"
+    },
+    "files": [
+      "dist/**/*",
+      "resources/**/*"
+    ],
+    "linux": {
+      "maintainer": "Antigravity <antigravity@example.com>",
+      "target": ["deb"],
+      "category": "Office",
+      "icon": "resources/icon.svg"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    }
+  }
+}
