@@ -57,12 +57,31 @@ function createWindow() {
             }
             body {
                 position: absolute !important;
-                top: 32px !important;
+                top: 38px !important;
                 bottom: 0 !important;
                 left: 0 !important;
                 right: 0 !important;
                 margin: 0 !important;
                 height: auto !important;
+            }
+            /* Inverted corner masks to create the 'nested' rounded look */
+            body::before, body::after {
+                content: '';
+                position: fixed;
+                top: 38px;
+                width: 12px;
+                height: 12px;
+                background: white;
+                z-index: 2147483647;
+                pointer-events: none;
+            }
+            body::before {
+                left: 0;
+                background: radial-gradient(circle at 100% 100%, transparent 12px, white 12px);
+            }
+            body::after {
+                right: 0;
+                background: radial-gradient(circle at 0% 100%, transparent 12px, white 12px);
             }
             video {
                 object-fit: cover !important;
@@ -72,7 +91,7 @@ function createWindow() {
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 32px;
+                height: 38px;
                 background: white;
                 z-index: 2147483647;
                 -webkit-app-region: drag;
