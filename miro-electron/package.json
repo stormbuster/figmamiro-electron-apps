@@ -1,30 +1,21 @@
 {
   "name": "miro-app",
   "version": "1.0.0",
-  "description": "Miro Desktop App (Electron Edition)",
-  "author": "Antigravity <antigravity@example.com>",
-  "homepage": "https://miro.com",
+  "description": "Miro Desktop App (Pro)",
+  "author": "Miro Custom",
   "main": "dist/main.js",
-  "files": [
-    "dist/**/*",
-    "resources/**/*"
-  ],
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && electron .",
-    "dev": "nodemon --watch src --ext ts --exec npm start",
     "package": "npm run build && electron-builder"
   },
-  "dependencies": {},
   "devDependencies": {
     "electron": "^30.0.8",
     "electron-builder": "^24.13.3",
     "typescript": "^5.0.0"
   },
   "build": {
-    "appId": "com.miro.native",
-    "productName": "Miro",
-    "executableName": "miro",
+    "appId": "com.miro.desktop.pro",
+    "productName": "MiroPro",
     "directories": {
       "output": "out"
     },
@@ -32,40 +23,15 @@
       "dist/**/*",
       "resources/**/*"
     ],
-    "linux": {
-      "maintainer": "Antigravity <antigravity@example.com>",
-      "target": ["deb"],
-      "category": "Office",
-      "icon": "resources/icon.svg"
-    },
     "mac": {
-      "icon": "resources/electron.icns",
       "category": "public.app-category.productivity",
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "hardenedRuntime": true,
+      "icon": "resources/electron.icns",
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist",
       "extendInfo": {
-        "CFBundleURLTypes": [
-          {
-            "CFBundleTypeRole": "Editor",
-            "CFBundleURLName": "MiroApp",
-            "CFBundleURLSchemes": [
-              "miroapp"
-            ]
-          }
-        ],
-        "NSCameraUsageDescription": "To use videochat, Miro needs access to your camera",
-        "NSMicrophoneUsageDescription": "To use videochat, Miro needs access to your microphone",
-        "NSBluetoothAlwaysUsageDescription": "This app needs access to Bluetooth",
-        "NSBluetoothPeripheralUsageDescription": "This app needs access to Bluetooth",
-        "NSPrefersDisplaySafeAreaCompatibilityMode": false,
-        "NSSupportsAutomaticGraphicsSwitching": true,
-        "LSMinimumSystemVersion": "12.0"
+        "NSCameraUsageDescription": "MiroPro needs access to your camera for video calls.",
+        "NSMicrophoneUsageDescription": "MiroPro needs access to your microphone for video calls."
       }
     }
   }
