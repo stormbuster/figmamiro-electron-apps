@@ -107,9 +107,25 @@ public class Miro.Window : Hdy.Window {
         settings.enable_developer_extras = true;
         settings.enable_webgl = true;
         settings.hardware_acceleration_policy = WebKit.HardwareAccelerationPolicy.ALWAYS;
+        settings.enable_media_stream = true;
+        settings.enable_mediasource = true;
+        settings.enable_javascript_markup = true;
+        settings.enable_smooth_scrolling = true;
+        settings.enable_back_forward_navigation_gestures = true;
         
         // Miro-specific User Agent
         settings.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+        // Grant Permissions (Camera, Mic, Geolocation, etc.)
+        webview.permission_request.connect ((request) => {
+            if (request is WebKit.UserMediaPermissionRequest || 
+                request is WebKit.GeolocationPermissionRequest || 
+                request is WebKit.NotificationPermissionRequest) {
+                request.allow ();
+                return true;
+            }
+            return false;
+        });
 
         // Main Layout
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
